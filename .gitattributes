@@ -1,0 +1,2 @@
+# Skills, dist and tests rely on LF; keep it on every OS (Windows autocrlf breaks frontmatter parsing).
+* text=auto eol=lf
