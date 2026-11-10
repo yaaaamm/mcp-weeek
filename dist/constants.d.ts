@@ -1,0 +1,11 @@
+export declare const DEFAULT_BOARD_ID: number;
+export declare const DEFAULT_PROJECT_ID: number | undefined;
+export declare const COLUMN_ROLES: readonly ["SOURCE_ERRORS", "SOURCE_IMPROVEMENTS", "DISCUSS", "AI_IN_PROGRESS", "AI_REWORK", "AWAITING_RELEASE", "AI_DONE", "REJECT_CONFIRM"];
+export type ColumnRole = (typeof COLUMN_ROLES)[number];
+export declare const ROLE_COLUMN_NAMES: Record<ColumnRole, string>;
+export declare const REQUIRED_ROLES: ColumnRole[];
+export declare const OPTIONAL_COLUMN_NAMES: string[];
+export declare const AI_REPORT_FIELD_NAME = "\u0418\u0418-\u043E\u0442\u0447\u0451\u0442";
+export declare const AI_DIALOG_FIELD_NAME = "\u0418\u0418-\u0434\u0438\u0430\u043B\u043E\u0433";
+export declare const REQUIRED_CUSTOM_FIELD_NAMES: readonly ["ИИ-отчёт", "ИИ-диалог"];
+export declare const OPTION_COLORS: readonly ["blue", "light_blue", "dark_purple", "purple", "dark_pink", "pink", "light_pink", "red"];

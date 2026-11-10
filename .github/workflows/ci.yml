@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # Поддерживаемые LTS-линии (nodejs/Release schedule.json): 22 — до
+        # 2027-04-30, 24 — до 2028-04-30. Node 20 закончился 2026-04-30, и
+        # `tsx --test` на нём не находит ни одного .ts-теста — джобы были
+        # зелёными, ничего не проверяя.
+        node: [22, 24]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm compile
+      # dist коммитится, чтобы установка из git ничего не собирала у клиента.
+      # Значит он обязан соответствовать исходникам: иначе установленный
+      # инструмент тихо отстанет от репозитория.
+      - name: Committed dist matches the sources
+        shell: bash
+        run: |
+          if ! git diff --exit-code -- dist; then
+            echo "Committed dist is stale. Run 'pnpm compile' and commit dist."
+            exit 1
+          fi
+      # Имена build/prepare/prepack/install/preinstall/postinstall включают в
+      # pacote подготовку git-пакета, которая ломает установку из git.
+      - name: No script name triggers git dependency preparation
+        shell: bash
+        run: |
+          node -e '
+            const scripts = require("./package.json").scripts || {};
+            const triggers = ["postinstall", "build", "preinstall", "install", "prepack", "prepare"];
+            const found = triggers.filter((name) => name in scripts);
+            if (found.length) {
+              console.error("Forbidden script names: " + found.join(", "));
+              process.exit(1);
+            }
+          '
+      - run: pnpm test:package

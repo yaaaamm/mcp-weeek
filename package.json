@@ -1,0 +1,42 @@
+{
+  "name": "mcp-weeek",
+  "version": "1.9.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Universal MCP CLI for one Weeek board per project",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-weeek": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "schema",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "compile": "node scripts/clean-dist.mjs && tsc && node scripts/copy-skill-templates.mjs && node scripts/mark-cli-executable.mjs",
+    "dev": "tsx src/index.ts",
+    "test": "tsx --test",
+    "test:package": "node scripts/package-smoke.mjs",
+    "verify:pack": "pnpm compile && pnpm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yaaaamm/mcp-weeek.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "dotenv": "^17.4.2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}
