@@ -10,6 +10,16 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const execFileAsync = promisify(execFile);
+
+// На Windows npm — это npm.cmd: без shell execFile его не находит (ENOENT).
+// С shell аргументы склеиваются строкой, поэтому пути с пробелами берём в кавычки.
+const isWindows = process.platform === "win32";
+const npm = (args, options = {}) =>
+  execFileAsync(
+    "npm",
+    isWindows ? args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)) : args,
+    { ...options, shell: isWindows }
+  );
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const temporaryRoot = await mkdtemp(path.join(tmpdir(), "mcp-weeek-package-"));
 const packDirectory = path.join(temporaryRoot, "pack");
@@ -17,8 +27,7 @@ const prefix = path.join(temporaryRoot, "prefix");
 
 try {
   await mkdir(packDirectory, { recursive: true });
-  const packed = await execFileAsync(
-    "npm",
+  const packed = await npm(
     ["pack", "--json", "--pack-destination", packDirectory],
     { cwd: repositoryRoot, maxBuffer: 10 * 1024 * 1024 }
   );
@@ -44,7 +53,7 @@ try {
   const tarball = path.join(packDirectory, packResult[0].filename);
   await access(tarball);
 
-  await execFileAsync("npm", ["install", "--global", "--prefix", prefix, tarball], {
+  await npm(["install", "--global", "--prefix", prefix, tarball], {
     cwd: temporaryRoot,
     maxBuffer: 10 * 1024 * 1024,
   });
@@ -58,7 +67,7 @@ try {
     pathToFileURL(path.join(repositoryRoot, "dist", "version.js")).href
   );
   assert.equal(packageJson.version, SERVER_VERSION);
-  const npmRoot = await execFileAsync("npm", ["root", "--global", "--prefix", prefix]);
+  const npmRoot = await npm(["root", "--global", "--prefix", prefix]);
   const installedCli = path.join(npmRoot.stdout.trim(), packageJson.name, "dist", "cli.js");
   await access(installedCli);
   const help = await execFileAsync(process.execPath, [installedCli, "--help"], {

@@ -15,7 +15,13 @@ export const SELF_INSTALL_ARGS = ["install", "--global", SELF_INSTALL_SOURCE];
 /** Метка, по которой перезапущенный процесс понимает, что обновление уже было. */
 export const SELF_CHECK_ENV = "MCP_WEEEK_SELF_CHECKED";
 export async function installSelf() {
-    await execFileAsync("npm", SELF_INSTALL_ARGS, { maxBuffer: 10 * 1024 * 1024 });
+    // На Windows npm — это npm.cmd: без shell execFile его не находит (ENOENT),
+    // а .cmd напрямую Node запускать запрещает. Аргументы — константы без
+    // пробелов, поэтому склейка их shell'ом безопасна.
+    await execFileAsync("npm", SELF_INSTALL_ARGS, {
+        maxBuffer: 10 * 1024 * 1024,
+        shell: process.platform === "win32",
+    });
 }
 /**
  * Перезапускает ту же команду уже установленной новой сборкой. Метка в
